@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test</title>
+</head>
+<body>
+    <h1>API Test Page</h1>
+    <button id="loginBtn">Admin Login</button>
+    <button id="getStudentsBtn">Get Students</button>
+    <button id="updateStudentBtn">Update First Student</button>
+    <button id="deleteStudentBtn">Delete Second Student</button>
+    <div id="results"></div>
+
+    <script>
+        let authToken = '';
+        let students = [];
+        
+        const resultsDiv = document.getElementById('results');
+        
+        function log(message) {
+            console.log(message);
+            resultsDiv.innerHTML += '<p>' + JSON.stringify(message, null, 2) + '</p>';
+        }
+        
+        // Admin login
+        document.getElementById('loginBtn').addEventListener('click', async () => {
+            try {
+                const response = await fetch('http://localhost:5000/api/admin/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: 'Hostel',
+                        password: 'H123'
+                    })
+                });
+                
+                const data = await response.json();
+                log('Login response: ' + JSON.stringify(data));
+                
+                if (data.success) {
+                    authToken = data.token;
+                    log('Token saved: ' + authToken.substring(0, 20) + '...');
+                }
+            } catch (error) {
+                log('Login error: ' + error.message);
+            }
+        });
+        
+        // Get students
+        document.getElementById('getStudentsBtn').addEventListener('click', async () => {
+            if (!authToken) {
+                log('Please login first');
+                return;
+            }
+            
+            try {
+                const response = await fetch('http://localhost:5000/api/users/students', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': 'Bearer ' + authToken,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                log('Students response: ' + JSON.stringify(data));
+                
+                if (data.success) {
+                    students = data.students;
+                    log('Found ' + students.length + ' students');
+                }
+            } catch (error) {
+                log('Get students error: ' + error.message);
+            }
+        });
+        
+        // Update student
+        document.getElementById('updateStudentBtn').addEventListener('click', async () => {
+            if (!authToken || students.length === 0) {
+                log('Please login and get students first');
+                return;
+            }
+            
+            const firstStudent = students[0];
+            log('Updating student: ' + JSON.stringify(firstStudent));
+            
+            try {
+                const response = await fetch('http://localhost:5000/api/users/' + firstStudent._id, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': 'Bearer ' + authToken,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        fullName: firstStudent.fullName + ' (Updated)',
+                        email: firstStudent.email
+                    })
+                });
+                
+                const data = await response.json();
+                log('Update response: ' + JSON.stringify(data));
+            } catch (error) {
+                log('Update error: ' + error.message);
+            }
+        });
+        
+        // Delete student
+        document.getElementById('deleteStudentBtn').addEventListener('click', async () => {
+            if (!authToken || students.length < 2) {
+                log('Please login and get students first (need at least 2 students)');
+                return;
+            }
+            
+            const secondStudent = students[1];
+            log('Deleting student: ' + JSON.stringify(secondStudent));
+            
+            try {
+                const response = await fetch('http://localhost:5000/api/users/' + secondStudent._id, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': 'Bearer ' + authToken,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                log('Delete response: ' + JSON.stringify(data));
+            } catch (error) {
+                log('Delete error: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>
