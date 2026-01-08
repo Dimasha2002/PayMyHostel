@@ -61,7 +61,8 @@ exports.register = async (req, res, next) => {
         phone: user.phone,
         hostelBlock: user.hostelBlock,
         roomNumber: user.roomNumber,
-        role: user.role
+        role: user.role,
+        lastPasswordChange: user.lastPasswordChange
       }
     });
   } catch (error) {
@@ -127,7 +128,8 @@ exports.login = async (req, res, next) => {
         phone: user.phone,
         hostelBlock: user.hostelBlock,
         roomNumber: user.roomNumber,
-        role: user.role
+        role: user.role,
+        lastPasswordChange: user.lastPasswordChange
       }
     });
   } catch (error) {
@@ -153,7 +155,8 @@ exports.getMe = async (req, res, next) => {
         hostelBlock: user.hostelBlock,
         roomNumber: user.roomNumber,
         role: user.role,
-        checkInDate: user.checkInDate
+        checkInDate: user.checkInDate,
+        lastPasswordChange: user.lastPasswordChange
       }
     });
   } catch (error) {

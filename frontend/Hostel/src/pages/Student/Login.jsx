@@ -125,15 +125,19 @@ const Login = ({ onBackHome, onSwitchToRegister, onLoginSuccess }) => {
 
       {/* Decorative side panel */}
       <div className="login-decoration">
-        <div className="decoration-content">
-          <h2>PayMayHostel</h2>
-          <p>Manage your hostel payments securely and efficiently</p>
-          <ul>
-            <li>✓ Quick and easy payments</li>
-            <li>✓ Payment tracking</li>
-            <li>✓ Real-time notifications</li>
-            <li>✓ 24/7 support</li>
-          </ul>
+        <div className="notice-board">
+          <div className="pin pin-left"></div>
+          <div className="pin pin-right"></div>
+          <div className="decoration-content">
+            <h2>PayMayHostel</h2>
+            <p>Manage your hostel payments securely and efficiently</p>
+            <ul>
+              <li>✓ Quick and easy payments</li>
+              <li>✓ Payment tracking</li>
+              <li>✓ Real-time notifications</li>
+              <li>✓ 24/7 support</li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>

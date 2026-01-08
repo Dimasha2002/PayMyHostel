@@ -7,7 +7,7 @@ import RoomDetails from './RoomDetails';
 import ReceiptModal from './ReceiptModal';
 import HostelNotices from './HostelNotices';
 import MakePayment from './MakePayment';
-import { paymentAPI } from '../../services/api';
+import { paymentAPI, userAPI } from '../../services/api';
 
 const Dashboard = ({ onLogout, currentUser }) => {
   const [activeSection, setActiveSection] = useState('overview');
@@ -26,22 +26,7 @@ const Dashboard = ({ onLogout, currentUser }) => {
   const [editData, setEditData] = useState(profileData);
   const [paymentHistory, setPaymentHistory] = useState([]);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [showSessionsModal, setShowSessionsModal] = useState(false);
   const [passwordData, setPasswordData] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
-  const [sessions, setSessions] = useState([
-    {
-      device: 'Chrome (Windows)',
-      location: 'Matara, LK',
-      ip: '192.168.1.12',
-      lastActive: 'Today · 09:15 AM'
-    },
-    {
-      device: 'Mobile Safari',
-      location: 'Matara, LK',
-      ip: '192.168.1.58',
-      lastActive: 'Yesterday · 08:20 PM'
-    }
-  ]);
 
   const handlePaymentSuccess = () => {
     setShowPaymentModal(false);
@@ -117,19 +102,67 @@ const Dashboard = ({ onLogout, currentUser }) => {
     alert(`Payment for ${rejectedPayment.month} ${rejectedPayment.year} has been removed. Please submit a new payment.`);
   };
 
-  const handlePasswordChange = (e) => {
+  // Calculate time since password change
+  const getPasswordChangeTime = () => {
+    if (!currentUser?.lastPasswordChange) return 'Never changed';
+    
+    const lastChange = new Date(currentUser.lastPasswordChange);
+    const now = new Date();
+    const diffSeconds = Math.floor((now - lastChange) / 1000);
+    
+    if (diffSeconds < 60) return 'Just now';
+    
+    const diffMinutes = Math.floor(diffSeconds / 60);
+    if (diffMinutes < 60) return `${diffMinutes} minute${diffMinutes !== 1 ? 's' : ''} ago`;
+    
+    const diffHours = Math.floor(diffMinutes / 60);
+    if (diffHours < 24) return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
+    
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays < 30) return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
+    
+    const diffMonths = Math.floor(diffDays / 30);
+    if (diffMonths < 12) return `${diffMonths} month${diffMonths !== 1 ? 's' : ''} ago`;
+    
+    const diffYears = Math.floor(diffMonths / 12);
+    return `${diffYears} year${diffYears !== 1 ? 's' : ''} ago`;
+  };
+
+  const handlePasswordChange = async (e) => {
     e.preventDefault();
+    
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      alert('New passwords do not match!');
+      alert('❌ New passwords do not match!');
       return;
     }
-    if (passwordData.newPassword.length < 6) {
-      alert('Password must be at least 6 characters long!');
+    
+    if (passwordData.newPassword.length < 4) {
+      alert('❌ Password must be at least 4 characters long!');
       return;
     }
-    alert('Password changed successfully!');
-    setShowPasswordModal(false);
-    setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+
+    try {
+      const response = await userAPI.changePassword({
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword
+      });
+
+      if (response.data.success) {
+        // Update lastPasswordChange in localStorage
+        const updatedUser = { ...currentUser, lastPasswordChange: new Date().toISOString() };
+        localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+        
+        alert('✅ Password changed successfully!');
+        setShowPasswordModal(false);
+        setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+        
+        // Optionally reload the page to reflect changes
+        window.location.reload();
+      }
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || 'Failed to change password';
+      alert(`❌ ${errorMessage}`);
+    }
   };
 
   // Generate PDF documents using jsPDF
@@ -423,16 +456,9 @@ const Dashboard = ({ onLogout, currentUser }) => {
                           <div className="security-item-vertical">
                             <div className="security-info">
                               <h4>Password</h4>
-                              <p>Last changed 3 months ago</p>
+                              <p>Last changed {getPasswordChangeTime()}</p>
                             </div>
                             <button className="security-action-btn" onClick={() => setShowPasswordModal(true)}>Change Password</button>
-                          </div>
-                          <div className="security-item-vertical">
-                            <div className="security-info">
-                              <h4>Active Sessions</h4>
-                              <p>{sessions.length} active session{sessions.length > 1 ? 's' : ''}</p>
-                            </div>
-                            <button className="security-action-btn" onClick={() => setShowSessionsModal(true)}>View Sessions</button>
                           </div>
                         </div>
                       )}
@@ -609,35 +635,6 @@ const Dashboard = ({ onLogout, currentUser }) => {
         </div>
       )}
 
-      {/* Sessions Modal */}
-      {showSessionsModal && (
-        <div className="modal-overlay" onClick={() => setShowSessionsModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>Active Sessions</h2>
-              <button className="close-button" onClick={() => setShowSessionsModal(false)}>✕</button>
-            </div>
-            <div className="sessions-list">
-              {sessions.map((session, index) => (
-                <div key={index} className="session-item">
-                  <div className="session-info">
-                    <h4>🖥️ {session.device}</h4>
-                    <p>📍 {session.location}</p>
-                    <p>🕐 {session.lastActive}</p>
-                    <p className="session-ip">IP: {session.ip}</p>
-                  </div>
-                  <button className="session-revoke-btn">Revoke</button>
-                </div>
-              ))}
-            </div>
-            <div className="modal-actions">
-              <button type="button" className="cancel-button" onClick={() => setShowSessionsModal(false)}>
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

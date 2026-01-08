@@ -573,6 +573,18 @@ body {
   background: #0330cc;
 }
 
+.nav-btn.login {
+  background: var(--primary-blue);
+  color: white;
+  border: none;
+  margin-right: 10px;
+}
+
+.nav-btn.login:hover {
+  background: #0330cc;
+  box-shadow: 0 4px 12px rgba(4, 55, 242, 0.4);
+}
+
 .nav-btn.admin {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;

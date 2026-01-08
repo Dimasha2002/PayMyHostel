@@ -77,7 +77,7 @@ function App() {
   return (
     <>
       {currentPage === 'home' && (
-        <Home onGetStarted={handleGetStarted} onAdminLogin={handleAdminLogin} />
+        <Home onGetStarted={handleGetStarted} onAdminLogin={handleAdminLogin} onLogin={handleSwitchToLogin} />
       )}
       {currentPage === 'register' && (
         <Register onBackHome={handleBackHome} onSwitchToLogin={handleSwitchToLogin} />

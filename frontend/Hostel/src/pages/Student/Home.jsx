@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import './Home.css';
 import hostelImage from '../../assets/hostel-room.webp';
 
-const Home = ({ onGetStarted, onAdminLogin }) => {
+const Home = ({ onGetStarted, onAdminLogin, onLogin }) => {
   const [activeNav, setActiveNav] = useState('home');
 
   const scrollToSection = (sectionId) => {
@@ -81,6 +81,7 @@ const Home = ({ onGetStarted, onAdminLogin }) => {
             </li>
           </ul>
           <div className="nav-actions">
+            <button className="nav-btn login" onClick={onLogin}>🔓 Login</button>
             <button className="nav-btn admin" onClick={onAdminLogin}>🔐 Admin</button>
           </div>
           </div>
